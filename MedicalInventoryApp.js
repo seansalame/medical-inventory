@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import "./styles.css";
 
 const MedicalInventoryApp = () => {
     const [medications, setMedications] = useState([]);
     const [newMed, setNewMed] = useState({ name: "", quantity: "", dailyUsage: "" });
     const [lowStockAlerts, setLowStockAlerts] = useState([]);
+    const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
         checkLowStock();
@@ -16,6 +18,7 @@ const MedicalInventoryApp = () => {
         }
         setMedications([...medications, { ...newMed, quantity: Number(newMed.quantity), dailyUsage: Number(newMed.dailyUsage) }]);
         setNewMed({ name: "", quantity: "", dailyUsage: "" });
+        setShowForm(false);
     };
 
     const updateQuantity = (index, newQuantity) => {
@@ -30,12 +33,36 @@ const MedicalInventoryApp = () => {
     };
 
     return (
-        <div style={{ direction: "rtl", textAlign: "right", padding: "20px", maxWidth: "500px", margin: "auto" }}>
+        <div className="container">
             <h1>📋 ניהול מלאי תרופות</h1>
-            <button onClick={addMedication}>➕ הוסף תרופה</button>
-
+            <button className="add-button" onClick={() => setShowForm(true)}>➕ הוסף תרופה</button>
+            
+            {showForm && (
+                <div className="form-box">
+                    <input
+                        type="text"
+                        placeholder="שם התרופה"
+                        value={newMed.name}
+                        onChange={(e) => setNewMed({ ...newMed, name: e.target.value })}
+                    />
+                    <input
+                        type="number"
+                        placeholder="כמות נוכחית"
+                        value={newMed.quantity}
+                        onChange={(e) => setNewMed({ ...newMed, quantity: e.target.value })}
+                    />
+                    <input
+                        type="number"
+                        placeholder="צריכה יומית"
+                        value={newMed.dailyUsage}
+                        onChange={(e) => setNewMed({ ...newMed, dailyUsage: e.target.value })}
+                    />
+                    <button className="save-button" onClick={addMedication}>✔ שמור</button>
+                </div>
+            )}
+            
             {lowStockAlerts.length > 0 && (
-                <div style={{ backgroundColor: "red", color: "white", padding: "10px", marginTop: "10px" }}>
+                <div className="alert-box">
                     ⚠️ התרופות הבאות עומדות להיגמר בקרוב:
                     <ul>
                         {lowStockAlerts.map((med, index) => (
@@ -45,7 +72,7 @@ const MedicalInventoryApp = () => {
                 </div>
             )}
 
-            <table border="1" style={{ width: "100%", marginTop: "10px" }}>
+            <table>
                 <thead>
                     <tr>
                         <th>שם התרופה</th>
@@ -56,7 +83,7 @@ const MedicalInventoryApp = () => {
                 </thead>
                 <tbody>
                     {medications.map((med, index) => (
-                        <tr key={index} style={{ backgroundColor: med.quantity / med.dailyUsage <= 14 ? "yellow" : "white" }}>
+                        <tr key={index} className={med.quantity / med.dailyUsage <= 14 ? "low-stock" : ""}>
                             <td>{med.name}</td>
                             <td>{med.quantity}</td>
                             <td>{med.dailyUsage}</td>
