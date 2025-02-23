@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { ref, set, onValue } from "firebase/database";
+import database from "./firebaseConfig";
 import "./styles.css";
 
 const MedicalInventoryApp = () => {
@@ -8,15 +10,22 @@ const MedicalInventoryApp = () => {
     const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
-        checkLowStock();
-    }, [medications]);
+        const medicationsRef = ref(database, "medications");
+        onValue(medicationsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setMedications(snapshot.val());
+            }
+        });
+    }, []);
 
     const addMedication = () => {
         if (!newMed.name || !newMed.quantity || !newMed.dailyUsage) {
             alert("נא למלא את כל השדות");
             return;
         }
-        setMedications([...medications, { ...newMed, quantity: Number(newMed.quantity), dailyUsage: Number(newMed.dailyUsage) }]);
+        const updatedMeds = [...medications, newMed];
+        setMedications(updatedMeds);
+        set(ref(database, "medications"), updatedMeds);
         setNewMed({ name: "", quantity: "", dailyUsage: "" });
         setShowForm(false);
     };
@@ -25,11 +34,7 @@ const MedicalInventoryApp = () => {
         const updatedMeds = [...medications];
         updatedMeds[index].quantity = newQuantity;
         setMedications(updatedMeds);
-    };
-
-    const checkLowStock = () => {
-        const alerts = medications.filter(med => med.quantity / med.dailyUsage <= 14);
-        setLowStockAlerts(alerts);
+        set(ref(database, "medications"), updatedMeds);
     };
 
     return (
@@ -103,3 +108,4 @@ const MedicalInventoryApp = () => {
 };
 
 export default MedicalInventoryApp;
+
